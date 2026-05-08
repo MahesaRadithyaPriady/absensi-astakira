@@ -25,13 +25,13 @@ export async function POST(request: NextRequest) {
       message: "Logout berhasil",
     });
 
-    // Clear cookie
+    // Clear cookie (same settings as login)
     response.cookies.set({
       name: TOKEN_COOKIE_NAME,
       value: "",
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: false, // Must match login route
+      sameSite: "lax",
       expires: new Date(0),
       path: "/",
     });

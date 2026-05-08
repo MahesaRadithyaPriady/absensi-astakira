@@ -72,12 +72,13 @@ export async function POST(request: NextRequest) {
     });
 
     // Set HTTP-only cookie
+    // Note: secure:false allows HTTP access (for local network use)
     response.cookies.set({
       name: TOKEN_COOKIE_NAME,
       value: accessToken,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: false, // Set false to allow HTTP access on local network
+      sameSite: "lax", // lax works better for HTTP
       expires: tokenExpires,
       path: "/",
     });
