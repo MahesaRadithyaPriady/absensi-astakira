@@ -1,65 +1,282 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Html5Qrcode } from "html5-qrcode";
+import { QrCode, ScanLine, CheckCircle2, Clock, User, AlertCircle } from "lucide-react";
+
+interface ScanResponse {
+  success: boolean;
+  message: string;
+  absensi?: {
+    id: string;
+    karyawan: {
+      nama: string;
+      nik: string;
+    };
+    waktuMasuk?: string;
+    waktuKeluar?: string;
+    status: string;
+  };
+}
 
 export default function Home() {
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const [scanResult, setScanResult] = useState<string | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [scanData, setScanData] = useState<ScanResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const scannerId = "qr-reader";
+
+    if (!scannerRef.current) {
+      scannerRef.current = new Html5Qrcode(scannerId);
+    }
+
+    const startScanner = async () => {
+      try {
+        await scannerRef.current?.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          async (decodedText) => {
+            setScanResult(decodedText);
+            scannerRef.current?.stop();
+            setIsScanning(false);
+            setIsProcessing(true);
+            setError(null);
+            
+            // Process absensi
+            try {
+              const response = await fetch('/api/absensi', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  qrCode: decodedText,
+                  scanBy: 'scanner',
+                }),
+              });
+              
+              const data: ScanResponse = await response.json();
+              setScanData(data);
+              
+              if (!data.success) {
+                setError(data.message || 'Gagal memproses absensi');
+              }
+            } catch (err) {
+              console.error('Absensi error:', err);
+              setError('Terjadi kesalahan saat memproses absensi');
+            } finally {
+              setIsProcessing(false);
+            }
+          },
+          () => {}
+        );
+        setIsScanning(true);
+      } catch (err) {
+        console.error("Scanner error:", err);
+      }
+    };
+
+    startScanner();
+
+    return () => {
+      scannerRef.current?.stop().catch(() => {});
+    };
+  }, []);
+
+  const handleRescan = () => {
+    setScanResult(null);
+    setScanData(null);
+    setError(null);
+    setIsScanning(true);
+    const startScanner = async () => {
+      try {
+        await scannerRef.current?.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          async (decodedText) => {
+            setScanResult(decodedText);
+            scannerRef.current?.stop();
+            setIsScanning(false);
+            setIsProcessing(true);
+            setError(null);
+            
+            // Process absensi
+            try {
+              const response = await fetch('/api/absensi', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  qrCode: decodedText,
+                  scanBy: 'scanner',
+                }),
+              });
+              
+              const data: ScanResponse = await response.json();
+              setScanData(data);
+              
+              if (!data.success) {
+                setError(data.message || 'Gagal memproses absensi');
+              }
+            } catch (err) {
+              console.error('Absensi error:', err);
+              setError('Terjadi kesalahan saat memproses absensi');
+            } finally {
+              setIsProcessing(false);
+            }
+          },
+          () => {}
+        );
+      } catch (err) {
+        console.error("Scanner error:", err);
+      }
+    };
+    startScanner();
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 flex flex-col items-center py-12 px-4">
+      <div className="w-full max-w-md">
+        <header className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg">
+            <QrCode className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-zinc-900">Absensi Astakira</h1>
+          <p className="text-zinc-500 mt-1">Scan QR Code untuk absensi</p>
+        </header>
+
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          {scanResult ? (
+            <div className="p-8">
+              {isProcessing ? (
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-4 animate-pulse">
+                    <Clock className="w-10 h-10 text-blue-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-zinc-900 mb-2">
+                    Memproses Absensi...
+                  </h2>
+                  <p className="text-zinc-500">Sedang menyimpan data absensi</p>
+                </div>
+              ) : error ? (
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-4">
+                    <AlertCircle className="w-10 h-10 text-red-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-zinc-900 mb-2">
+                    Gagal!
+                  </h2>
+                  <p className="text-zinc-500 mb-2">{error}</p>
+                  <p className="text-zinc-400 text-sm mb-6 break-all">{scanResult}</p>
+                  <button
+                    onClick={handleRescan}
+                    className="w-full py-3 px-6 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors"
+                  >
+                    Scan Lagi
+                  </button>
+                </div>
+              ) : scanData?.success ? (
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
+                    <CheckCircle2 className="w-10 h-10 text-green-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-zinc-900 mb-2">
+                    {scanData.message}
+                  </h2>
+                  
+                  {scanData.absensi && (
+                    <div className="bg-zinc-50 rounded-xl p-4 mb-6 text-left">
+                      <div className="flex items-center gap-3 mb-3">
+                        <User className="w-5 h-5 text-zinc-500" />
+                        <div>
+                          <p className="font-medium text-zinc-900">{scanData.absensi.karyawan.nama}</p>
+                          <p className="text-sm text-zinc-500">{scanData.absensi.karyawan.nik}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-zinc-500">Status</p>
+                          <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                            scanData.absensi.status === 'HADIR' ? 'bg-green-100 text-green-700' :
+                            scanData.absensi.status === 'TELAT' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {scanData.absensi.status}
+                          </span>
+                        </div>
+                        
+                        {scanData.absensi.waktuMasuk && (
+                          <div className="text-right">
+                            <p className="text-xs text-zinc-500">{scanData.absensi.waktuKeluar ? 'Check Out' : 'Check In'}</p>
+                            <p className="text-sm font-medium text-zinc-900">
+                              {new Date(scanData.absensi.waktuMasuk || scanData.absensi.waktuKeluar!).toLocaleTimeString('id-ID', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <button
+                    onClick={handleRescan}
+                    className="w-full py-3 px-6 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors"
+                  >
+                    Scan Lagi
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-yellow-100 rounded-full mb-4">
+                    <AlertCircle className="w-10 h-10 text-yellow-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-zinc-900 mb-2">
+                    Terjadi Kesalahan
+                  </h2>
+                  <p className="text-zinc-500 mb-6 break-all">{scanResult}</p>
+                  <button
+                    onClick={handleRescan}
+                    className="w-full py-3 px-6 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors"
+                  >
+                    Scan Lagi
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-6">
+              <div className="relative aspect-square bg-zinc-900 rounded-xl overflow-hidden">
+                <div id="qr-reader" className="w-full h-full" />
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="w-48 h-48 border-2 border-blue-400 rounded-lg">
+                    <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-blue-400 -mt-1 -ml-1" />
+                    <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-blue-400 -mt-1 -mr-1" />
+                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-blue-400 -mb-1 -ml-1" />
+                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-blue-400 -mb-1 -mr-1" />
+                  </div>
+                </div>
+                <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-2 text-white/80">
+                  <ScanLine className="w-4 h-4" />
+                  <span className="text-sm font-medium">
+                    {isScanning ? "Scanning..." : "Memulai scanner..."}
+                  </span>
+                </div>
+              </div>
+              <p className="text-center text-zinc-500 text-sm mt-4">
+                Arahkan kamera ke QR Code absensi
+              </p>
+            </div>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
