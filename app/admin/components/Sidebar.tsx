@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Home, Users, ClipboardList, LogOut, Shield } from "lucide-react";
+import { Home, Users, ClipboardList, LogOut, Building2 } from "lucide-react";
 
 interface SidebarProps {
   user: {
@@ -25,11 +25,19 @@ export default function Sidebar({ user, onLogout }: SidebarProps) {
       {/* Logo */}
       <div className="p-6 border-b border-zinc-700">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-            <Shield className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center overflow-hidden">
+            <img 
+              src="/uploads/logo_perusahaan.jpeg" 
+              alt="Astakira Logo" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+            <Building2 className="w-5 h-5 text-white hidden" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white">Astakira</h1>
+            <h1 className="text-lg font-bold text-white">Astakira Media</h1>
             <p className="text-xs text-zinc-400">Admin Panel</p>
           </div>
         </div>

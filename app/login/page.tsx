@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Shield, Eye, EyeOff, Lock, User, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Lock, User, AlertCircle, Building2 } from "lucide-react";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -50,18 +50,30 @@ export default function LoginPage() {
         <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl overflow-hidden border border-white/20">
           <div className="p-8">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg shadow-blue-600/30">
-                <Shield className="w-8 h-8 text-white" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg shadow-blue-600/30 overflow-hidden">
+                <img 
+                  src="/uploads/logo_perusahaan.jpeg" 
+                  alt="Astakira Logo" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    e.currentTarget.parentElement?.classList.add('flex');
+                  }}
+                />
+                <Building2 className="w-8 h-8 text-white hidden" id="fallback-icon" />
               </div>
-              <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
-              <p className="text-zinc-400 mt-1">Kepengurusan Astakira</p>
+              <h1 className="text-2xl font-bold text-white">Astakira Media</h1>
+              <p className="text-zinc-400 mt-1">Sistem Absensi Digital</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
-                <div className="p-4 bg-red-500/20 border border-red-500/30 rounded-xl flex items-center gap-3 text-red-200">
-                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                  <span className="text-sm">{error}</span>
+                <div className="p-4 bg-red-500/20 border border-red-500/30 rounded-xl flex items-start gap-3 text-red-200 animate-in fade-in slide-in-from-top-2">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">Login Gagal</p>
+                    <p className="text-sm opacity-90">{error}</p>
+                  </div>
                 </div>
               )}
               <div>
@@ -149,11 +161,8 @@ export default function LoginPage() {
                 href="/"
                 className="block text-sm text-zinc-400 hover:text-zinc-300 transition-colors"
               >
-                Kembali ke halaman utama
+                Kembali ke halaman scan QR
               </a>
-              <p className="text-xs text-zinc-600">
-                Hint: admin/admin123 atau pengurus/pengurus123
-              </p>
             </div>
           </div>
 

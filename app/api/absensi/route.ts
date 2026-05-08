@@ -64,7 +64,28 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingAbsensi) {
-      // Update waktu keluar (check out)
+      // Jika sudah ada waktu masuk dan waktu keluar, tolak scan lagi
+      if (existingAbsensi.waktuMasuk && existingAbsensi.waktuKeluar) {
+        console.log("[ABSENSI POST] Rejected - already complete:", existingAbsensi.id);
+        
+        return NextResponse.json({
+          success: false,
+          error: "Anda tidak perlu scan lagi",
+          message: "Anda sudah melakukan scan masuk dan keluar hari ini",
+          absensi: {
+            id: existingAbsensi.id,
+            karyawan: {
+              nama: karyawan.nama,
+              nik: karyawan.nik,
+            },
+            waktuMasuk: existingAbsensi.waktuMasuk,
+            waktuKeluar: existingAbsensi.waktuKeluar,
+            status: existingAbsensi.status,
+          },
+        }, { status: 400 });
+      }
+      
+      // Update waktu keluar (check out) - hanya jika belum ada waktu keluar
       const updated = await prisma.absensi.update({
         where: { id: existingAbsensi.id },
         data: {

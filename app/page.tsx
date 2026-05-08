@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Html5Qrcode } from "html5-qrcode";
 import { QrCode, ScanLine, CheckCircle2, Clock, User, AlertCircle } from "lucide-react";
 
 interface ScanResponse {
   success: boolean;
-  message: string;
+  message?: string;
+  error?: string;
   absensi?: {
     id: string;
     karyawan: {
@@ -20,6 +22,7 @@ interface ScanResponse {
 }
 
 export default function Home() {
+  const router = useRouter();
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -63,7 +66,18 @@ export default function Home() {
               setScanData(data);
               
               if (!data.success) {
-                setError(data.message || 'Gagal memproses absensi');
+                setError(data.message || data.error || 'Gagal memproses absensi');
+              } else if (data.absensi) {
+                // Redirect ke halaman success dengan data
+                const params = new URLSearchParams({
+                  message: data.message || 'Absensi berhasil',
+                  nama: data.absensi.karyawan.nama,
+                  nik: data.absensi.karyawan.nik,
+                  status: data.absensi.status,
+                  waktu: data.absensi.waktuKeluar || data.absensi.waktuMasuk || '',
+                  id: data.absensi.id,
+                });
+                router.push(`/absensi/success?${params.toString()}`);
               }
             } catch (err) {
               console.error('Absensi error:', err);
@@ -121,7 +135,18 @@ export default function Home() {
               setScanData(data);
               
               if (!data.success) {
-                setError(data.message || 'Gagal memproses absensi');
+                setError(data.message || data.error || 'Gagal memproses absensi');
+              } else if (data.absensi) {
+                // Redirect ke halaman success dengan data
+                const params = new URLSearchParams({
+                  message: data.message || 'Absensi berhasil',
+                  nama: data.absensi.karyawan.nama,
+                  nik: data.absensi.karyawan.nik,
+                  status: data.absensi.status,
+                  waktu: data.absensi.waktuKeluar || data.absensi.waktuMasuk || '',
+                  id: data.absensi.id,
+                });
+                router.push(`/absensi/success?${params.toString()}`);
               }
             } catch (err) {
               console.error('Absensi error:', err);
