@@ -1,11 +1,13 @@
 "use client";
 
+import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle2, User, Clock, AlertCircle, Send, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 
-export default function AbsensiSuccess() {
+// Inner component that uses useSearchParams
+function SuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
@@ -207,5 +209,31 @@ export default function AbsensiSuccess() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 flex items-center justify-center">
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-4 animate-pulse">
+          <Clock className="w-10 h-10 text-blue-600" />
+        </div>
+        <h2 className="text-xl font-semibold text-zinc-900 mb-2">
+          Memuat...
+        </h2>
+        <p className="text-zinc-500">Sedang memuat halaman</p>
+      </div>
+    </div>
+  );
+}
+
+// Main page component wrapped in Suspense
+export default function AbsensiSuccess() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <SuccessContent />
+    </Suspense>
   );
 }

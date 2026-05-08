@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
-import { Plus, Search, Edit, Trash2, Eye, X, QrCode, User, Calendar, MapPin, Phone, Mail, Building, Download } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, X, QrCode, User, Calendar, MapPin, Phone, Mail, Building, Download, CreditCard } from "lucide-react";
 import PhotoUpload from "@/app/admin/components/PhotoUpload";
 import LoadingSkeleton from "@/app/admin/components/LoadingSkeleton";
 
@@ -429,7 +429,7 @@ export default function KaryawanPage() {
                       onClick={() => generateKartu(k.id)}
                       className="text-zinc-400 hover:text-white text-sm flex items-center gap-1"
                     >
-                      <IdCard className="w-4 h-4" />
+                      <CreditCard className="w-4 h-4" />
                       Generate
                     </button>
                   )}

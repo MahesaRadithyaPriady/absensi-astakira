@@ -92,7 +92,8 @@ export async function GET(request: NextRequest) {
     successUrl.searchParams.set('nama', absensi.karyawan.nama);
     successUrl.searchParams.set('nik', absensi.karyawan.nik);
     successUrl.searchParams.set('status', absensi.status);
-    successUrl.searchParams.set('waktu', absensi.waktuMasuk || absensi.waktuKeluar || '');
+    successUrl.searchParams.set('waktu', (absensi.waktuMasuk || absensi.waktuKeluar || new Date()).toISOString());
+    successUrl.searchParams.set('id', absensi.id);
     
     return NextResponse.redirect(successUrl);
 
